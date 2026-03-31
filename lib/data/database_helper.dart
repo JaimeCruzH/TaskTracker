@@ -156,4 +156,122 @@ class DatabaseHelper {
     final db = await database;
     db.close();
   }
+
+  /// Finds tasks that overlap with a proposed time slot.
+  /// Takes the proposed date, time, duration in minutes, and optionally a taskId to exclude.
+  /// Returns a list of overlapping tasks.
+  Future<List<Task>> findOverlappingTasks({
+    required DateTime date,
+    required TimeOfDay time,
+    required int durationMinutes,
+    String? currentTaskId,
+  }) async {
+    final db = await database;
+    final overlapping = <Task>{};
+
+    // Convert proposed time to minutes since midnight
+    final proposedStartMinutes = time.hour * 60 + time.minute;
+    final proposedEndMinutes = proposedStartMinutes + durationMinutes;
+
+    // Helper to check if two ranges overlap [start, end)
+    bool rangesOverlap(int start1, int end1, int start2, int end2) {
+      return start1 < end2 && start2 < end1;
+    }
+
+    // Helper to convert TimeOfDay to minutes since midnight
+    int timeToMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
+
+    // 1. Query individual (non-recurring) tasks on the same date
+    final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    final individualQuery = StringBuffer();
+    final individualArgs = <dynamic>[dateStr];
+
+    if (currentTaskId != null) {
+      individualQuery.write('recurrenceType = ? AND dueDate = ? AND id != ?');
+      individualArgs.insert(0, RecurrenceType.none.index);
+      individualArgs.add(currentTaskId);
+    } else {
+      individualQuery.write('recurrenceType = ? AND dueDate = ?');
+      individualArgs.insert(0, RecurrenceType.none.index);
+    }
+
+    final individualResults = await db.query(
+      'tasks',
+      where: individualQuery.toString(),
+      whereArgs: individualArgs,
+    );
+
+    for (final row in individualResults) {
+      final task = Task.fromMap(row);
+      if (task.dueTime != null && task.durationMinutes != null) {
+        final taskStart = timeToMinutes(task.dueTime!);
+        final taskEnd = taskStart + task.durationMinutes!;
+        if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
+          overlapping.add(task);
+        }
+      }
+    }
+
+    // 2. Query recurring tasks and expand occurrences
+    final recurringQuery = StringBuffer();
+    final recurringArgs = <dynamic>[];
+
+    if (currentTaskId != null) {
+      recurringQuery.write('recurrenceType != ? AND dueDate = ? AND id != ?');
+      recurringArgs.add(RecurrenceType.none.index);
+      recurringArgs.add(dateStr);
+      recurringArgs.add(currentTaskId);
+    } else {
+      recurringQuery.write('recurrenceType != ? AND dueDate = ?');
+      recurringArgs.add(RecurrenceType.none.index);
+      recurringArgs.add(dateStr);
+    }
+
+    final recurringResults = await db.query(
+      'tasks',
+      where: recurringQuery.toString(),
+      whereArgs: recurringArgs,
+    );
+
+    for (final row in recurringResults) {
+      final task = Task.fromMap(row);
+      if (task.dueTime != null && task.durationMinutes != null) {
+        // For recurring tasks, check if the given date falls on a valid occurrence
+        if (_isValidOccurrence(date, task)) {
+          final taskStart = timeToMinutes(task.dueTime!);
+          final taskEnd = taskStart + task.durationMinutes!;
+          if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
+            overlapping.add(task);
+          }
+        }
+      }
+    }
+
+    return overlapping.toList();
+  }
+
+  /// Checks if a given date is a valid occurrence of a recurring task.
+  bool _isValidOccurrence(DateTime date, Task task) {
+    if (task.dueDate == null) return false;
+
+    final baseDate = task.dueDate!;
+    final diff = date.difference(baseDate).inDays;
+
+    if (diff < 0) return false;
+
+    switch (task.recurrenceType) {
+      case RecurrenceType.daily:
+        return true;
+      case RecurrenceType.weekly:
+        return diff % 7 == 0;
+      case RecurrenceType.monthly:
+        return date.day == baseDate.day;
+      case RecurrenceType.yearly:
+        return date.month == baseDate.month && date.day == baseDate.day;
+      case RecurrenceType.none:
+        return date.year == baseDate.year &&
+               date.month == baseDate.month &&
+               date.day == baseDate.day;
+    }
+  }
 }
