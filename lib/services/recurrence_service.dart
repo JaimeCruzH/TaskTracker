@@ -49,7 +49,7 @@ class RecurrenceService {
     }
   }
 
-  List<Task> generateOccurrences(
+  List<Task> expandRecurrences(
     Task task, {
     required DateTime startDate,
     required DateTime endDate,

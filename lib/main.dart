@@ -10,6 +10,7 @@ void main() async {
 
   final databaseHelper = DatabaseHelper();
   await databaseHelper.database;
+  await databaseHelper.pruneOldCompletedTasks();
 
   final taskRepository = TaskRepository(databaseHelper);
   final notificationService = NotificationService();
