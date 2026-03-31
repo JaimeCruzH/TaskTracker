@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'data/database_helper.dart';
 import 'data/task_repository.dart';
+import 'providers/task_repository_provider.dart';
 import 'services/notification_service.dart';
 import 'screens/home_screen.dart';
 
@@ -46,12 +47,4 @@ class TaskTrackerApp extends StatelessWidget {
       home: const HomeScreen(),
     );
   }
-}
-
-class TaskRepositoryProvider extends ChangeNotifier {
-  final TaskRepository _repository;
-
-  TaskRepositoryProvider(this._repository);
-
-  TaskRepository get repository => _repository;
 }

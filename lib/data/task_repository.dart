@@ -1,12 +1,18 @@
 import 'package:uuid/uuid.dart';
 import '../models/task.dart';
+import '../utils/date_utils.dart';
 import 'database_helper.dart';
 
 class TaskRepository {
   final DatabaseHelper _databaseHelper;
   final _uuid = const Uuid();
+  List<Task> _tasks = [];
 
   TaskRepository(this._databaseHelper);
+
+  Future<void> loadTasks() async {
+    _tasks = await _databaseHelper.getAllTasks();
+  }
 
   Future<List<Task>> getAllTasks() async {
     return await _databaseHelper.getAllTasks();
@@ -116,5 +122,52 @@ class TaskRepository {
 
   Future<int> pruneOldCompletedTasks({int daysOld = 30}) async {
     return await _databaseHelper.pruneOldCompletedTasks(daysOld: daysOld);
+  }
+
+  Map<String, List<Task>> get groupedTasks {
+    final allTasks = _tasks.where((t) => t.parentTaskId == null).toList();
+
+    final overdue = <Task>[];
+    final today = <Task>[];
+    final tomorrow = <Task>[];
+    final thisWeek = <Task>[];
+    final noDate = <Task>[];
+    final completed = <Task>[];
+
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final weekEnd = todayStart.add(const Duration(days: 7));
+
+    for (final task in allTasks) {
+      if (task.isCompleted) {
+        completed.add(task);
+      } else if (task.dueDate == null) {
+        noDate.add(task);
+      } else if (task.dueDate!.isBefore(todayStart)) {
+        overdue.add(task);
+      } else if (DateTimeUtils.isToday(task.dueDate!)) {
+        today.add(task);
+      } else if (DateTimeUtils.isTomorrow(task.dueDate!)) {
+        tomorrow.add(task);
+      } else if (task.dueDate!.isBefore(weekEnd)) {
+        thisWeek.add(task);
+      } else {
+        noDate.add(task);
+      }
+    }
+
+    // Sort completed by completedAt descending, keep only last 20
+    completed.sort((a, b) => (b.completedAt ?? DateTime.now()).compareTo(a.completedAt ?? DateTime.now()));
+    final limitedCompleted = completed.take(20).toList();
+
+    return {
+      'Vencidas': overdue,
+      'Hoy': today,
+      'Manana': tomorrow,
+      'Esta semana': thisWeek,
+      'Sin fecha': noDate,
+      'Completadas': limitedCompleted,
+    };
   }
 }
