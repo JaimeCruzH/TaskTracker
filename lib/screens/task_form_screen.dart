@@ -90,12 +90,12 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
   void _onCreateAnyway() {
     // Proceed with task creation even with overlap warning
-    Navigator.of(context).pop();
+    Navigator.of(context).pop('create');
   }
 
   void _onChangeSchedule() {
-    // Navigate back or focus on schedule fields
-    Navigator.of(context).pop();
+    // Let user change the schedule - pop with different result
+    Navigator.of(context).pop('reschedule');
   }
 
   Future<void> _selectDate() async {

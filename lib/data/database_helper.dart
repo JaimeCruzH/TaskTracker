@@ -262,29 +262,4 @@ class DatabaseHelper {
 
     return overlapping.toList();
   }
-
-  /// Checks if a given date is a valid occurrence of a recurring task.
-  bool _isValidOccurrence(DateTime date, Task task) {
-    if (task.dueDate == null) return false;
-
-    final baseDate = task.dueDate!;
-    final diff = date.difference(baseDate).inDays;
-
-    if (diff < 0) return false;
-
-    switch (task.recurrenceType) {
-      case RecurrenceType.daily:
-        return true;
-      case RecurrenceType.weekly:
-        return diff % 7 == 0;
-      case RecurrenceType.monthly:
-        return date.day == baseDate.day;
-      case RecurrenceType.yearly:
-        return date.month == baseDate.month && date.day == baseDate.day;
-      case RecurrenceType.none:
-        return date.year == baseDate.year &&
-               date.month == baseDate.month &&
-               date.day == baseDate.day;
-    }
-  }
 }
