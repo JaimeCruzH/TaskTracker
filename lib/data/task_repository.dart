@@ -164,7 +164,7 @@ class TaskRepository {
     return {
       'Vencidas': overdue,
       'Hoy': today,
-      'Manana': tomorrow,
+      'Mañana': tomorrow,
       'Esta semana': thisWeek,
       'Sin fecha': noDate,
       'Completadas': limitedCompleted,

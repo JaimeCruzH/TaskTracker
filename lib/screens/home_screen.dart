@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final sections = <MapEntry<String, List<Task>>>[];
 
                 // Add non-empty sections in order
-                final sectionOrder = ['Vencidas', 'Hoy', 'Manana', 'Esta semana', 'Sin fecha', 'Completadas'];
+                final sectionOrder = ['Vencidas', 'Hoy', 'Mañana', 'Esta semana', 'Sin fecha', 'Completadas'];
                 for (final key in sectionOrder) {
                   if (grouped[key]!.isNotEmpty || key == 'Completadas') {
                     sections.add(MapEntry(key, grouped[key]!));
