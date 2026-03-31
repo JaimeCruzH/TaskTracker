@@ -2,6 +2,8 @@ enum Priority { low, medium, high }
 
 enum RecurrenceType { none, daily, weekly, monthly, yearly }
 
+enum TaskCategory { work, home, health, sport, personal, study, shopping, finance }
+
 class Task {
   final String id;
   final String title;
@@ -17,6 +19,8 @@ class Task {
   final String? parentTaskId;
   final int? durationMinutes;
   final List<String> tagIds;
+  final int? dependsOnTaskId;
+  final TaskCategory? category;
 
   Task({
     required this.id,
@@ -33,6 +37,8 @@ class Task {
     this.parentTaskId,
     this.durationMinutes,
     this.tagIds = const [],
+    this.dependsOnTaskId,
+    this.category,
   });
 
   Map<String, dynamic> toMap() {
@@ -52,6 +58,8 @@ class Task {
       'recurrencePatternId': recurrencePatternId,
       'parentTaskId': parentTaskId,
       'durationMinutes': durationMinutes,
+      'dependsOnTaskId': dependsOnTaskId,
+      'category': category?.index,
     };
   }
 
@@ -84,6 +92,10 @@ class Task {
       recurrencePatternId: map['recurrencePatternId'] as String?,
       parentTaskId: map['parentTaskId'] as String?,
       durationMinutes: map['durationMinutes'] as int?,
+      dependsOnTaskId: map['dependsOnTaskId'] as int?,
+      category: map['category'] != null
+          ? TaskCategory.values[map['category'] as int]
+          : null,
     );
   }
 
@@ -102,6 +114,8 @@ class Task {
     String? parentTaskId,
     int? durationMinutes,
     List<String>? tagIds,
+    int? dependsOnTaskId,
+    TaskCategory? category,
   }) {
     return Task(
       id: id ?? this.id,
@@ -119,6 +133,8 @@ class Task {
       parentTaskId: parentTaskId ?? this.parentTaskId,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       tagIds: tagIds ?? this.tagIds,
+      dependsOnTaskId: dependsOnTaskId ?? this.dependsOnTaskId,
+      category: category ?? this.category,
     );
   }
 
