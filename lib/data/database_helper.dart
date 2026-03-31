@@ -113,6 +113,16 @@ class DatabaseHelper {
     return result.map((map) => Task.fromMap(map)).toList();
   }
 
+  Future<List<Task>> getTasksByRecurrencePattern(String patternId) async {
+    final db = await database;
+    final result = await db.query(
+      'tasks',
+      where: 'recurrencePatternId = ?',
+      whereArgs: [patternId],
+    );
+    return result.map((map) => Task.fromMap(map)).toList();
+  }
+
   Future<int> updateTask(Task task) async {
     final db = await database;
     return await db.update(
