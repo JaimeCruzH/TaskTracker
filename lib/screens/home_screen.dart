@@ -35,57 +35,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _deleteTask(Task task) async {
-    final hasRecurrence = task.recurrenceType != RecurrenceType.none &&
-        task.recurrencePatternId != null;
+    try {
+      final hasRecurrence = task.recurrenceType != RecurrenceType.none &&
+          task.recurrencePatternId != null;
 
-    if (hasRecurrence) {
-      final futureCount = await _taskRepository.countFutureRecurrences(
-        task.recurrencePatternId!,
-        task.id,
-      );
-
-      if (!mounted) return;
-
-      final result = await showDialog<DeleteRecurrenceChoice>(
-        context: context,
-        builder: (context) => DeleteRecurringDialog(
-          task: task,
-          futureCount: futureCount,
-        ),
-      );
-
-      if (result == null) return;
-
-      if (result == DeleteRecurrenceChoice.thisOccurrence) {
-        // Delete current task and create next occurrence
-        final nextDueDate = _recurrenceService.calculateNextOccurrence(task);
-
-        await _taskRepository.deleteTask(task.id);
-
-        // Create next occurrence
-        await _taskRepository.createTask(
-          title: task.title,
-          description: task.description,
-          dueDate: nextDueDate,
-          dueTime: task.dueTime,
-          priority: task.priority,
-          recurrenceType: task.recurrenceType,
-          recurrencePatternId: task.recurrencePatternId,
-          durationMinutes: task.durationMinutes,
-          tagIds: task.tagIds,
-        );
-      } else {
-        // Delete all future recurrences
-        await _taskRepository.deleteFutureRecurrences(
+      if (hasRecurrence) {
+        final futureCount = await _taskRepository.countFutureRecurrences(
           task.recurrencePatternId!,
           task.id,
         );
-      }
-    } else {
-      await _taskRepository.deleteTask(task.id);
-    }
 
-    _loadTasks();
+        if (!mounted) return;
+
+        final result = await showDialog<DeleteRecurrenceChoice>(
+          context: context,
+          builder: (context) => DeleteRecurringDialog(
+            task: task,
+            futureCount: futureCount,
+          ),
+        );
+
+        if (result == null) return;
+
+        if (result == DeleteRecurrenceChoice.thisOccurrence) {
+          // Delete current task and create next occurrence
+          final nextDueDate = _recurrenceService.calculateNextOccurrence(task);
+
+          await _taskRepository.deleteTask(task.id);
+
+          // Create next occurrence only if nextDueDate is not null
+          if (nextDueDate != null) {
+            await _taskRepository.createTask(
+              title: task.title,
+              description: task.description,
+              dueDate: nextDueDate,
+              dueTime: task.dueTime,
+              priority: task.priority,
+              recurrenceType: task.recurrenceType,
+              recurrencePatternId: task.recurrencePatternId,
+              durationMinutes: task.durationMinutes,
+              tagIds: task.tagIds,
+            );
+          }
+        } else {
+          // Delete all future recurrences
+          await _taskRepository.deleteFutureRecurrences(
+            task.recurrencePatternId!,
+            task.id,
+          );
+        }
+      } else {
+        await _taskRepository.deleteTask(task.id);
+      }
+
+      _loadTasks();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting task: $e')),
+      );
+    }
   }
 
   @override

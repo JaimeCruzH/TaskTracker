@@ -84,7 +84,6 @@ class TaskRepository {
   Future<int> countFutureRecurrences(String patternId, String currentId) async {
     final tasks = await getTasksByRecurrencePattern(patternId);
     final today = DateTime.now();
-    today.copyWith(hour: 0, minute: 0, second: 0, millisecond: 0);
     return tasks.where((t) {
       return t.id != currentId &&
           t.dueDate != null &&
@@ -97,13 +96,22 @@ class TaskRepository {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
 
-    for (final task in tasks) {
-      if (task.id != currentId &&
-          task.dueDate != null &&
-          !task.dueDate!.isBefore(todayStart)) {
-        await deleteTask(task.id);
-      }
+    final idsToDelete = tasks
+        .where((t) =>
+            t.id != currentId &&
+            t.dueDate != null &&
+            !t.dueDate!.isBefore(todayStart))
+        .map((t) => t.id)
+        .toList();
+
+    if (idsToDelete.isEmpty) return;
+
+    final db = await _databaseHelper.database;
+    final batch = db.batch();
+    for (final id in idsToDelete) {
+      batch.delete('tasks', where: 'id = ?', whereArgs: [id]);
     }
+    await batch.commit(noResult: true);
   }
 
   Future<int> pruneOldCompletedTasks({int daysOld = 30}) async {
