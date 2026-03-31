@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import '../models/task.dart';
+import '../services/recurrence_service.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -212,19 +213,18 @@ class DatabaseHelper {
       }
     }
 
-    // 2. Query recurring tasks and expand occurrences
+    // 2. Query all recurring tasks (no date filter) and expand occurrences
+    final recurringService = RecurrenceService();
     final recurringQuery = StringBuffer();
     final recurringArgs = <dynamic>[];
 
     if (currentTaskId != null) {
-      recurringQuery.write('recurrenceType != ? AND dueDate = ? AND id != ?');
+      recurringQuery.write('recurrenceType != ? AND id != ?');
       recurringArgs.add(RecurrenceType.none.index);
-      recurringArgs.add(dateStr);
       recurringArgs.add(currentTaskId);
     } else {
-      recurringQuery.write('recurrenceType != ? AND dueDate = ?');
+      recurringQuery.write('recurrenceType != ?');
       recurringArgs.add(RecurrenceType.none.index);
-      recurringArgs.add(dateStr);
     }
 
     final recurringResults = await db.query(
@@ -236,12 +236,25 @@ class DatabaseHelper {
     for (final row in recurringResults) {
       final task = Task.fromMap(row);
       if (task.dueTime != null && task.durationMinutes != null) {
-        // For recurring tasks, check if the given date falls on a valid occurrence
-        if (_isValidOccurrence(date, task)) {
-          final taskStart = timeToMinutes(task.dueTime!);
-          final taskEnd = taskStart + task.durationMinutes!;
-          if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
-            overlapping.add(task);
+        // Expand next 15 occurrences and check each for time overlap
+        final occurrences = recurringService.expandRecurrences(
+          task,
+          startDate: date,
+          endDate: DateTime(2100),
+          maxOccurrences: 15,
+        );
+
+        for (final occurrence in occurrences) {
+          // Check if occurrence falls on the proposed date
+          if (occurrence.dueDate!.year == date.year &&
+              occurrence.dueDate!.month == date.month &&
+              occurrence.dueDate!.day == date.day) {
+            final taskStart = timeToMinutes(occurrence.dueTime!);
+            final taskEnd = taskStart + occurrence.durationMinutes!;
+            if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
+              overlapping.add(task);
+              break; // Only add once per recurring task
+            }
           }
         }
       }
