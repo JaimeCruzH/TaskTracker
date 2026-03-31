@@ -121,6 +121,19 @@ class Task {
       tagIds: tagIds ?? this.tagIds,
     );
   }
+
+  String get formattedDuration {
+    if (durationMinutes == null) return 'Sin duracion';
+    final hours = durationMinutes! ~/ 60;
+    final minutes = durationMinutes! % 60;
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h ${minutes}m';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}m';
+    }
+  }
 }
 
 class TimeOfDay {
