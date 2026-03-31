@@ -1,4 +1,4 @@
-enum Priority { low, medium, high, critical }
+enum Priority { low, medium, high }
 
 enum RecurrenceType { none, daily, weekly, monthly, yearly }
 

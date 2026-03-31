@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../models/task.dart';
 
 class DateTimeUtils {
   static String formatDate(DateTime date) {
@@ -56,26 +57,4 @@ class DateTimeUtils {
     to = DateTime(to.year, to.month, to.day);
     return (to.difference(from).inHours / 24).round();
   }
-}
-
-class TimeOfDay {
-  final int hour;
-  final int minute;
-
-  const TimeOfDay({required this.hour, required this.minute});
-
-  @override
-  String toString() =>
-      '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is TimeOfDay &&
-          runtimeType == other.runtimeType &&
-          hour == other.hour &&
-          minute == other.minute;
-
-  @override
-  int get hashCode => hour.hashCode ^ minute.hashCode;
 }
