@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -X POST https://api.github.com/user/repos -H \"Authorization: token <TOKEN>\" -d '{\"\"name\"\":\"\"TaskTracker\"\",\"\"description\"\":\"\"Aplicación de gestión de tareas para Android con Flutter\"\",\"\"private\"\":false}')"
+    ]
+  }
+}
