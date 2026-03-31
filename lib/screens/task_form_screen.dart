@@ -33,6 +33,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   List<Task> _availableTasks = [];
   Timer? _debounceTimer;
   bool _isLoading = false;
+  bool _showOverlapWarning = true;
 
   bool get _isEditMode => widget.task != null;
 
@@ -115,6 +116,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   void _onDateChanged(DateTime? date) {
     setState(() {
       _selectedDate = date;
+      _showOverlapWarning = true;
     });
     _scheduleOverlapCheck();
   }
@@ -122,6 +124,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   void _onTimeChanged(TimeOfDay? time) {
     setState(() {
       _selectedTime = time;
+      _showOverlapWarning = true;
     });
     _scheduleOverlapCheck();
   }
@@ -129,6 +132,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   void _onDurationChanged(int? minutes) {
     setState(() {
       _durationMinutes = minutes;
+      _showOverlapWarning = true;
     });
     _scheduleOverlapCheck();
   }
@@ -138,7 +142,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   }
 
   void _onChangeSchedule() {
-    // Let user change the schedule - do nothing, just dismiss
+    setState(() {
+      _showOverlapWarning = false;
+    });
   }
 
   Future<void> _selectDate() async {
@@ -450,7 +456,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
               ),
 
               // Overlap warning
-              if (_overlappingTasks.isNotEmpty) ...[
+              if (_overlappingTasks.isNotEmpty && _showOverlapWarning) ...[
                 const SizedBox(height: 24),
                 OverlapWarning(
                   overlappingTasks: _overlappingTasks,
