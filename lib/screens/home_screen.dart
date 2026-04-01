@@ -5,6 +5,7 @@ import '../providers/task_repository_provider.dart';
 import '../services/recurrence_service.dart';
 import '../widgets/delete_recurring_dialog.dart';
 import '../widgets/task_card.dart';
+import '../widgets/week_view_screen.dart';
 import 'task_form_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -112,42 +113,29 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('TaskTracker'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadTasks,
           ),
         ],
+        bottom: const TabBar(
+          tabs: [
+            Tab(text: 'Lista'),
+            Tab(text: 'Semana'),
+          ],
+        ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Consumer<TaskRepositoryProvider>(
-              builder: (context, provider, _) {
-                final grouped = provider.groupedTasks;
-                final sections = <MapEntry<String, List<Task>>>[];
-
-                // Add non-empty sections in order
-                final sectionOrder = ['Vencidas', 'Hoy', 'Mañana', 'Esta semana', 'Sin fecha', 'Completadas'];
-                for (final key in sectionOrder) {
-                  if (grouped[key]!.isNotEmpty || key == 'Completadas') {
-                    sections.add(MapEntry(key, grouped[key]!));
-                  }
-                }
-
-                if (sections.isEmpty ||
-                    (sections.length == 1 && sections.first.key == 'Completadas' && sections.first.value.isEmpty)) {
-                  return const Center(child: Text('No hay tareas'));
-                }
-
-                return ListView.builder(
-                  itemCount: sections.length,
-                  itemBuilder: (context, index) {
-                    final section = sections[index];
-                    return _buildSection(section.key, section.value);
-                  },
-                );
-              },
-            ),
+      body: DefaultTabController(
+        length: 2,
+        child: TabBarView(
+          children: [
+            _buildTaskListView(),
+            const WeekViewScreen(),
+          ],
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         onPressed: () {
@@ -157,6 +145,39 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildTaskListView() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return Consumer<TaskRepositoryProvider>(
+      builder: (context, provider, _) {
+        final grouped = provider.groupedTasks;
+        final sections = <MapEntry<String, List<Task>>>[];
+
+        // Add non-empty sections in order
+        final sectionOrder = ['Vencidas', 'Hoy', 'Mañana', 'Esta semana', 'Sin fecha', 'Completadas'];
+        for (final key in sectionOrder) {
+          if (grouped[key]!.isNotEmpty || key == 'Completadas') {
+            sections.add(MapEntry(key, grouped[key]!));
+          }
+        }
+
+        if (sections.isEmpty ||
+            (sections.length == 1 && sections.first.key == 'Completadas' && sections.first.value.isEmpty)) {
+          return const Center(child: Text('No hay tareas'));
+        }
+
+        return ListView.builder(
+          itemCount: sections.length,
+          itemBuilder: (context, index) {
+            final section = sections[index];
+            return _buildSection(section.key, section.value);
+          },
+        );
+      },
     );
   }
 
