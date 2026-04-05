@@ -9,7 +9,7 @@ import 'screens/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final databaseHelper = DatabaseHelper();
+  final databaseHelper = DatabaseHelper.instance;
   await databaseHelper.database;
   await databaseHelper.pruneOldCompletedTasks();
 

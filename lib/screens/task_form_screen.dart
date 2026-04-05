@@ -53,7 +53,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
       _recurrenceType = widget.task!.recurrenceType;
       _durationMinutes = widget.task!.durationMinutes;
       _selectedDate = widget.task!.dueDate;
-      _selectedTime = widget.task!.dueTime;
+      if (widget.task!.hasTime) {
+        _selectedTime = TimeOfDay(hour: widget.task!.dueTimeHour!, minute: widget.task!.dueTimeMinute!);
+      }
       _dependsOnTaskId = widget.task!.parentTaskId;
     } else {
       _priority = Priority.medium;
@@ -101,7 +103,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
     final overlapping = await DatabaseHelper.instance.findOverlappingTasks(
       date: _selectedDate!,
-      time: _selectedTime!,
+      timeHour: _selectedTime!.hour,
+      timeMinute: _selectedTime!.minute,
       durationMinutes: _durationMinutes!,
       currentTaskId: widget.task?.id,
     );
@@ -194,7 +197,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           description: description.isNotEmpty ? description : null,
           priority: _priority,
           dueDate: _selectedDate,
-          dueTime: _selectedTime,
+          dueTimeHour: _selectedTime?.hour,
+          dueTimeMinute: _selectedTime?.minute,
           durationMinutes: _durationMinutes,
           recurrenceType: _recurrenceType,
           parentTaskId: _dependsOnTaskId,
@@ -209,7 +213,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           description: description.isNotEmpty ? description : null,
           priority: _priority,
           dueDate: _selectedDate,
-          dueTime: _selectedTime,
+          dueTimeHour: _selectedTime?.hour,
+          dueTimeMinute: _selectedTime?.minute,
           durationMinutes: _durationMinutes,
           recurrenceType: _recurrenceType,
           parentTaskId: _dependsOnTaskId,
@@ -305,7 +310,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
 
               // Prioridad
               DropdownButtonFormField<Priority>(
-                value: _priority,
+                initialValue: _priority,
                 decoration: const InputDecoration(
                   labelText: 'Prioridad',
                   border: OutlineInputBorder(),

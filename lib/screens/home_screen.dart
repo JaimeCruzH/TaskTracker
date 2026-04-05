@@ -75,20 +75,19 @@ class _HomeScreenState extends State<HomeScreen> {
           await provider.repository.deleteTask(task.id);
 
           // Create next occurrence only if nextDueDate is not null
-          if (nextDueDate != null) {
-            await provider.repository.createTask(
-              title: task.title,
-              description: task.description,
-              dueDate: nextDueDate,
-              dueTime: task.dueTime,
-              priority: task.priority,
-              recurrenceType: task.recurrenceType,
-              recurrencePatternId: task.recurrencePatternId,
-              durationMinutes: task.durationMinutes,
-              tagIds: task.tagIds,
-            );
-          }
-        } else {
+          await provider.repository.createTask(
+            title: task.title,
+            description: task.description,
+            dueDate: nextDueDate,
+            dueTimeHour: task.dueTimeHour,
+            dueTimeMinute: task.dueTimeMinute,
+            priority: task.priority,
+            recurrenceType: task.recurrenceType,
+            recurrencePatternId: task.recurrencePatternId,
+            durationMinutes: task.durationMinutes,
+            tagIds: task.tagIds,
+          );
+                } else {
           // Delete all future recurrences
           await provider.repository.deleteFutureRecurrences(
             task.recurrencePatternId!,
@@ -230,8 +229,6 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: TaskCard(
         task: task,
-        onDelete: () => _deleteTask(task),
-        onToggleComplete: () => _toggleComplete(task),
       ),
     );
-  }
+  }}

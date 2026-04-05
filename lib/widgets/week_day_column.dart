@@ -23,9 +23,9 @@ class WeekDayColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tasksWithTime = tasks.where((t) => t.dueTime != null).toList()
-      ..sort((a, b) => _timeToMinutes(a.dueTime!).compareTo(_timeToMinutes(b.dueTime!)));
-    final tasksWithoutTime = tasks.where((t) => t.dueTime == null).toList();
+    final tasksWithTime = tasks.where((t) => t.hasTime).toList()
+      ..sort((a, b) => _timeToMinutes(a).compareTo(_timeToMinutes(b)));
+    final tasksWithoutTime = tasks.where((t) => !t.hasTime).toList();
 
     return Container(
       decoration: BoxDecoration(
@@ -108,7 +108,7 @@ class WeekDayColumn extends StatelessWidget {
   }
 
   Widget _buildPositionedTask(Task task, int index, List<Task> allTasks) {
-    final startMinutes = _timeToMinutes(task.dueTime!);
+    final startMinutes = _timeToMinutes(task);
     final duration = task.durationMinutes ?? 30;
     final endMinutes = startMinutes + duration;
 
@@ -121,7 +121,7 @@ class WeekDayColumn extends StatelessWidget {
     bool hasAdjacentBelow = false;
     if (index < allTasks.length - 1) {
       final nextTask = allTasks[index + 1];
-      final nextStart = _timeToMinutes(nextTask.dueTime!);
+      final nextStart = _timeToMinutes(nextTask);
       hasAdjacentBelow = (nextStart - endMinutes).abs() < 5;
     }
 
@@ -143,12 +143,8 @@ class WeekDayColumn extends StatelessWidget {
     );
   }
 
-  double _minutesToPixels(int minutes) {
-    return (minutes / 60.0) * pixelsPerHour;
-  }
-
-  int _timeToMinutes(TimeOfDay time) {
-    return time.hour * 60 + time.minute;
+  int _timeToMinutes(Task task) {
+    return task.dueTimeHour! * 60 + task.dueTimeMinute!;
   }
 
   String _getDayName() {

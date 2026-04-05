@@ -10,6 +10,8 @@ class TaskRepository {
 
   TaskRepository(this._databaseHelper);
 
+  List<Task> get tasks => _tasks;
+
   Future<void> loadTasks() async {
     _tasks = await _databaseHelper.getAllTasks();
   }
@@ -34,7 +36,8 @@ class TaskRepository {
     required String title,
     String? description,
     DateTime? dueDate,
-    TimeOfDay? dueTime,
+    int? dueTimeHour,
+    int? dueTimeMinute,
     Priority priority = Priority.medium,
     RecurrenceType recurrenceType = RecurrenceType.none,
     String? recurrencePatternId,
@@ -47,7 +50,8 @@ class TaskRepository {
       title: title,
       description: description,
       dueDate: dueDate,
-      dueTime: dueTime,
+      dueTimeHour: dueTimeHour,
+      dueTimeMinute: dueTimeMinute,
       priority: priority,
       isCompleted: false,
       createdAt: DateTime.now(),
@@ -59,11 +63,16 @@ class TaskRepository {
     );
 
     await _databaseHelper.insertTask(task);
+    _tasks.add(task);
     return task;
   }
 
   Future<Task> updateTask(Task task) async {
     await _databaseHelper.updateTask(task);
+    final index = _tasks.indexWhere((t) => t.id == task.id);
+    if (index != -1) {
+      _tasks[index] = task;
+    }
     return task;
   }
 
@@ -81,6 +90,7 @@ class TaskRepository {
 
   Future<void> deleteTask(String id) async {
     await _databaseHelper.deleteTask(id);
+    _tasks.removeWhere((t) => t.id == id);
   }
 
   Future<List<Task>> getTasksByRecurrencePattern(String patternId) async {
@@ -118,6 +128,8 @@ class TaskRepository {
       batch.delete('tasks', where: 'id = ?', whereArgs: [id]);
     }
     await batch.commit(noResult: true);
+
+    _tasks.removeWhere((t) => idsToDelete.contains(t.id));
   }
 
   Future<int> pruneOldCompletedTasks({int daysOld = 30}) async {

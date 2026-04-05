@@ -9,7 +9,8 @@ class Task {
   final String title;
   final String? description;
   final DateTime? dueDate;
-  final TimeOfDay? dueTime;
+  final int? dueTimeHour;
+  final int? dueTimeMinute;
   final Priority priority;
   final bool isCompleted;
   final DateTime createdAt;
@@ -27,7 +28,8 @@ class Task {
     required this.title,
     this.description,
     this.dueDate,
-    this.dueTime,
+    this.dueTimeHour,
+    this.dueTimeMinute,
     this.priority = Priority.medium,
     this.isCompleted = false,
     required this.createdAt,
@@ -41,15 +43,34 @@ class Task {
     this.category,
   });
 
+  bool get hasTime => dueTimeHour != null && dueTimeMinute != null;
+
+  String get formattedDuration {
+    if (durationMinutes == null) return 'Sin duración';
+    final hours = durationMinutes! ~/ 60;
+    final minutes = durationMinutes! % 60;
+    if (hours > 0 && minutes > 0) {
+      return '${hours}h ${minutes}m';
+    } else if (hours > 0) {
+      return '${hours}h';
+    } else {
+      return '${minutes}m';
+    }
+  }
+
+  String get formattedTime {
+    if (!hasTime) return '';
+    return '${dueTimeHour.toString().padLeft(2, '0')}:${dueTimeMinute.toString().padLeft(2, '0')}';
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'description': description,
       'dueDate': dueDate?.toIso8601String(),
-      'dueTime': dueTime != null
-          ? '${dueTime!.hour}:${dueTime!.minute}'
-          : null,
+      'dueTimeHour': dueTimeHour,
+      'dueTimeMinute': dueTimeMinute,
       'priority': priority.index,
       'isCompleted': isCompleted ? 1 : 0,
       'createdAt': createdAt.toIso8601String(),
@@ -58,20 +79,26 @@ class Task {
       'recurrencePatternId': recurrencePatternId,
       'parentTaskId': parentTaskId,
       'durationMinutes': durationMinutes,
+      'tagIds': tagIds.join(','),
       'dependsOnTaskId': dependsOnTaskId,
       'category': category?.index,
     };
   }
 
   factory Task.fromMap(Map<String, dynamic> map) {
-    TimeOfDay? parseTime(String? timeStr) {
-      if (timeStr == null) return null;
+    final timeStr = map['dueTime'] as String?;
+    int? hour;
+    int? minute;
+    if (timeStr != null && timeStr.contains(':')) {
       final parts = timeStr.split(':');
-      return TimeOfDay(
-        hour: int.parse(parts[0]),
-        minute: int.parse(parts[1]),
-      );
+      hour = int.tryParse(parts[0]);
+      minute = int.tryParse(parts[1]);
     }
+
+    final tagIdsStr = map['tagIds'] as String?;
+    final tagIds = tagIdsStr != null && tagIdsStr.isNotEmpty
+        ? tagIdsStr.split(',')
+        : <String>[];
 
     return Task(
       id: map['id'] as String,
@@ -80,18 +107,20 @@ class Task {
       dueDate: map['dueDate'] != null
           ? DateTime.parse(map['dueDate'] as String)
           : null,
-      dueTime: parseTime(map['dueTime'] as String?),
-      priority: Priority.values[map['priority'] as int],
-      isCompleted: (map['isCompleted'] as int) == 1,
+      dueTimeHour: map['dueTimeHour'] as int? ?? hour,
+      dueTimeMinute: map['dueTimeMinute'] as int? ?? minute,
+      priority: Priority.values[map['priority'] as int? ?? 1],
+      isCompleted: (map['isCompleted'] as int? ?? 0) == 1,
       createdAt: DateTime.parse(map['createdAt'] as String),
       completedAt: map['completedAt'] != null
           ? DateTime.parse(map['completedAt'] as String)
           : null,
       recurrenceType:
-          RecurrenceType.values[map['recurrenceType'] as int],
+          RecurrenceType.values[map['recurrenceType'] as int? ?? 0],
       recurrencePatternId: map['recurrencePatternId'] as String?,
       parentTaskId: map['parentTaskId'] as String?,
       durationMinutes: map['durationMinutes'] as int?,
+      tagIds: tagIds,
       dependsOnTaskId: map['dependsOnTaskId'] as int?,
       category: map['category'] != null
           ? TaskCategory.values[map['category'] as int]
@@ -104,7 +133,8 @@ class Task {
     String? title,
     String? description,
     DateTime? dueDate,
-    TimeOfDay? dueTime,
+    int? dueTimeHour,
+    int? dueTimeMinute,
     Priority? priority,
     bool? isCompleted,
     DateTime? createdAt,
@@ -122,7 +152,8 @@ class Task {
       title: title ?? this.title,
       description: description ?? this.description,
       dueDate: dueDate ?? this.dueDate,
-      dueTime: dueTime ?? this.dueTime,
+      dueTimeHour: dueTimeHour ?? this.dueTimeHour,
+      dueTimeMinute: dueTimeMinute ?? this.dueTimeMinute,
       priority: priority ?? this.priority,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
@@ -136,18 +167,5 @@ class Task {
       dependsOnTaskId: dependsOnTaskId ?? this.dependsOnTaskId,
       category: category ?? this.category,
     );
-  }
-
-  String get formattedDuration {
-    if (durationMinutes == null) return 'Sin duracion';
-    final hours = durationMinutes! ~/ 60;
-    final minutes = durationMinutes! % 60;
-    if (hours > 0 && minutes > 0) {
-      return '${hours}h ${minutes}m';
-    } else if (hours > 0) {
-      return '${hours}h';
-    } else {
-      return '${minutes}m';
-    }
   }
 }

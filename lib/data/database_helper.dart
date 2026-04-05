@@ -33,7 +33,8 @@ class DatabaseHelper {
         title TEXT NOT NULL,
         description TEXT,
         dueDate TEXT,
-        dueTime TEXT,
+        dueTimeHour INTEGER,
+        dueTimeMinute INTEGER,
         priority INTEGER NOT NULL DEFAULT 1,
         isCompleted INTEGER NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL,
@@ -42,6 +43,8 @@ class DatabaseHelper {
         recurrencePatternId TEXT,
         parentTaskId TEXT,
         durationMinutes INTEGER,
+        dependsOnTaskId INTEGER,
+        category INTEGER,
         FOREIGN KEY (parentTaskId) REFERENCES tasks(id) ON DELETE SET NULL
       )
     ''');
@@ -159,11 +162,12 @@ class DatabaseHelper {
   }
 
   /// Finds tasks that overlap with a proposed time slot.
-  /// Takes the proposed date, time, duration in minutes, and optionally a taskId to exclude.
+  /// Takes the proposed date, time (hour and minute), duration in minutes, and optionally a taskId to exclude.
   /// Returns a list of overlapping tasks.
   Future<List<Task>> findOverlappingTasks({
     required DateTime date,
-    required TimeOfDay time,
+    required int timeHour,
+    required int timeMinute,
     required int durationMinutes,
     String? currentTaskId,
   }) async {
@@ -171,16 +175,13 @@ class DatabaseHelper {
     final overlapping = <Task>{};
 
     // Convert proposed time to minutes since midnight
-    final proposedStartMinutes = time.hour * 60 + time.minute;
+    final proposedStartMinutes = timeHour * 60 + timeMinute;
     final proposedEndMinutes = proposedStartMinutes + durationMinutes;
 
     // Helper to check if two ranges overlap [start, end)
     bool rangesOverlap(int start1, int end1, int start2, int end2) {
       return start1 < end2 && start2 < end1;
     }
-
-    // Helper to convert TimeOfDay to minutes since midnight
-    int timeToMinutes(TimeOfDay t) => t.hour * 60 + t.minute;
 
     // 1. Query individual (non-recurring) tasks on the same date
     final dateStr = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -204,8 +205,8 @@ class DatabaseHelper {
 
     for (final row in individualResults) {
       final task = Task.fromMap(row);
-      if (task.dueTime != null && task.durationMinutes != null) {
-        final taskStart = timeToMinutes(task.dueTime!);
+      if (task.hasTime && task.durationMinutes != null) {
+        final taskStart = task.dueTimeHour! * 60 + task.dueTimeMinute!;
         final taskEnd = taskStart + task.durationMinutes!;
         if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
           overlapping.add(task);
@@ -235,7 +236,7 @@ class DatabaseHelper {
 
     for (final row in recurringResults) {
       final task = Task.fromMap(row);
-      if (task.dueTime != null && task.durationMinutes != null) {
+      if (task.hasTime && task.durationMinutes != null) {
         // Expand next 15 occurrences and check each for time overlap
         final occurrences = recurringService.expandRecurrences(
           task,
@@ -249,7 +250,7 @@ class DatabaseHelper {
           if (occurrence.dueDate!.year == date.year &&
               occurrence.dueDate!.month == date.month &&
               occurrence.dueDate!.day == date.day) {
-            final taskStart = timeToMinutes(occurrence.dueTime!);
+            final taskStart = occurrence.dueTimeHour! * 60 + occurrence.dueTimeMinute!;
             final taskEnd = taskStart + occurrence.durationMinutes!;
             if (rangesOverlap(proposedStartMinutes, proposedEndMinutes, taskStart, taskEnd)) {
               overlapping.add(task);

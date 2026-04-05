@@ -10,6 +10,11 @@ class DateTimeUtils {
     return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 
+  static String formatTimeFromTask(Task task) {
+    if (!task.hasTime) return '';
+    return formatTime(task.dueTimeHour!, task.dueTimeMinute!);
+  }
+
   static String formatDateTime(DateTime date, int hour, int minute) {
     return '${formatDate(date)} ${formatTime(hour, minute)}';
   }
@@ -28,27 +33,31 @@ class DateTimeUtils {
         date.day == tomorrow.day;
   }
 
-  static bool isOverdue(DateTime? dueDate, TimeOfDay? dueTime) {
+  static bool isOverdue(DateTime? dueDate, int? dueTimeHour, int? dueTimeMinute) {
     if (dueDate == null) return false;
 
     final now = DateTime.now();
-    final due = dueTime != null
-        ? DateTime(dueDate.year, dueDate.month, dueDate.day, dueTime.hour, dueTime.minute)
-        : DateTime(dueDate.year, dueDate.month, dueDate.day, 23, 59);
+    final due = DateTime(
+      dueDate.year,
+      dueDate.month,
+      dueDate.day,
+      dueTimeHour ?? 23,
+      dueTimeMinute ?? 59,
+    );
 
     return due.isBefore(now);
   }
 
   static String getRelativeDate(DateTime date) {
     if (isToday(date)) return 'Hoy';
-    if (isTomorrow(date)) return 'Manana';
+    if (isTomorrow(date)) return 'Mañana';
     return formatDate(date);
   }
 
   static String getRelativeDateTime(DateTime date, int hour, int minute) {
     final timeStr = formatTime(hour, minute);
     if (isToday(date)) return 'Hoy a las $timeStr';
-    if (isTomorrow(date)) return 'Manana a las $timeStr';
+    if (isTomorrow(date)) return 'Mañana a las $timeStr';
     return '${formatDate(date)} a las $timeStr';
   }
 

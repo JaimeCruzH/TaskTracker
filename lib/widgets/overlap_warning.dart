@@ -21,8 +21,8 @@ class OverlapWarning extends StatelessWidget {
       buffer.write(' — ${_formatDate(task.dueDate!)}');
     }
 
-    if (task.dueTime != null) {
-      buffer.write(' ${task.dueTime!.hour.toString().padLeft(2, '0')}:${task.dueTime!.minute.toString().padLeft(2, '0')}');
+    if (task.hasTime) {
+      buffer.write(' ${task.dueTimeHour.toString().padLeft(2, '0')}:${task.dueTimeMinute.toString().padLeft(2, '0')}');
     }
 
     return buffer.toString();

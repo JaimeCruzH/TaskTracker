@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/task.dart';
 
 enum DeleteRecurrenceChoice { thisOccurrence, allFuture }
@@ -7,13 +6,11 @@ enum DeleteRecurrenceChoice { thisOccurrence, allFuture }
 class DeleteRecurringDialog extends StatefulWidget {
   final Task task;
   final int futureCount;
-  final DateFormat dateFormat;
 
   const DeleteRecurringDialog({
     super.key,
     required this.task,
     required this.futureCount,
-    this.dateFormat = const DateFormat('dd/MMMM'),
   });
 
   @override
@@ -23,11 +20,14 @@ class DeleteRecurringDialog extends StatefulWidget {
 class _DeleteRecurringDialogState extends State<DeleteRecurringDialog> {
   DeleteRecurrenceChoice _choice = DeleteRecurrenceChoice.thisOccurrence;
 
+  String _formatDate(DateTime date) {
+    final months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return '${date.day} ${months[date.month - 1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dateStr = widget.task.dueDate != null
-        ? widget.dateFormat.format(widget.task.dueDate!)
-        : '';
+    final dateStr = widget.task.dueDate != null ? _formatDate(widget.task.dueDate!) : '';
 
     return AlertDialog(
       title: Row(
@@ -50,7 +50,7 @@ class _DeleteRecurringDialogState extends State<DeleteRecurringDialog> {
           const SizedBox(height: 8),
           RadioListTile<DeleteRecurrenceChoice>(
             title: const Text('Solo esta repetición'),
-            subtitle: Text('"$widget.task.title - $dateStr"'),
+            subtitle: Text('"${widget.task.title} - $dateStr"'),
             value: DeleteRecurrenceChoice.thisOccurrence,
             groupValue: _choice,
             onChanged: (value) {

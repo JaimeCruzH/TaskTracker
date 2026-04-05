@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
-import '../utils/date_utils.dart' as utils;
+import '../utils/date_utils.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
   final VoidCallback? onTap;
-  final String? parentTaskTitle;
 
   const TaskCard({
     super.key,
     required this.task,
     this.onTap,
-    this.parentTaskTitle,
   });
 
   @override
@@ -79,19 +77,19 @@ class TaskCard extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  utils.DateUtils.getRelativeDate(task.dueDate!),
+                                  DateTimeUtils.getRelativeDate(task.dueDate!),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: _getDateColor(),
                                   ),
                                 ),
                               ],
-                              if (task.dueTime != null) ...[
+                              if (task.hasTime) ...[
                                 const SizedBox(width: 8),
                                 const Icon(Icons.access_time, size: 14, color: Colors.grey),
                                 const SizedBox(width: 2),
                                 Text(
-                                  utils.DateUtils.formatTime(task.dueTime!),
+                                  task.formattedTime,
                                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                                 ),
                               ],
@@ -121,9 +119,9 @@ class TaskCard extends StatelessWidget {
     );
 
     // Add tooltip for blocked tasks
-    if (isBlocked && parentTaskTitle != null) {
+    if (isBlocked) {
       cardContent = Tooltip(
-        message: 'Bloqueada por: $parentTaskTitle',
+        message: 'Bloqueada',
         child: cardContent,
       );
     }

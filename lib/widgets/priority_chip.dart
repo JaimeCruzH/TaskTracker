@@ -46,8 +46,6 @@ class PriorityChip extends StatelessWidget {
       case Priority.medium:
         return Colors.blue;
       case Priority.high:
-        return Colors.orange;
-      case Priority.critical:
         return Colors.red;
     }
   }
@@ -60,8 +58,6 @@ class PriorityChip extends StatelessWidget {
         return 'Media';
       case Priority.high:
         return 'Alta';
-      case Priority.critical:
-        return 'Critica';
     }
   }
 }
