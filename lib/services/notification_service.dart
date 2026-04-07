@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class NotificationService {
   // Stub implementation - will be expanded in later tasks
