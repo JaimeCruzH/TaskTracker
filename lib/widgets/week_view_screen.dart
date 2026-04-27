@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../data/task_repository.dart';
 import '../models/task.dart';
+import '../providers/task_repository_provider.dart';
 import 'week_day_column.dart';
 import '../screens/task_form_screen.dart';
 
@@ -76,8 +76,7 @@ class _WeekViewScreenState extends State<WeekViewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final repo = context.watch<TaskRepository>();
-    final allTasks = repo.tasks;
+    final allTasks = context.watch<TaskRepositoryProvider>().repository.tasks;
     final weekDays = _getWeekDays();
 
     return Column(
