@@ -110,7 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('TaskTracker'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -127,14 +129,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      body: DefaultTabController(
-        length: 2,
-        child: TabBarView(
-          children: [
-            _buildTaskListView(),
-            const WeekViewScreen(),
-          ],
-        ),
+      body: TabBarView(
+        children: [
+          _buildTaskListView(),
+          const WeekViewScreen(),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
@@ -145,6 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: const Icon(Icons.add),
       ),
+    ),
     );
   }
 
