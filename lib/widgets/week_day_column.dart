@@ -20,6 +20,7 @@ class WeekDayColumn extends StatelessWidget {
   // Horas visibles: 8:00 (top) a 20:00 (bottom) = 12 horas
   static const double startHour = 8.0;
   static const double pixelsPerHour = 40.0;
+  static const double headerHeight = 60.0;
 
   @override
   Widget build(BuildContext context) {
@@ -35,27 +36,30 @@ class WeekDayColumn extends StatelessWidget {
       child: Column(
         children: [
           // Header
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: [
-                Text(
-                  _getDayName(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: isToday ? Colors.blue : Colors.grey,
+          SizedBox(
+            height: headerHeight,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _getDayName(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isToday ? Colors.blue : Colors.grey,
+                    ),
                   ),
-                ),
-                Text(
-                  '${date.day}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
-                    color: isToday ? Colors.blue : Colors.black,
+                  Text(
+                    '${date.day}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                      color: isToday ? Colors.blue : Colors.black,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
 

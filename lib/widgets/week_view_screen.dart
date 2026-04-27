@@ -109,20 +109,53 @@ class _WeekViewScreenState extends State<WeekViewScreen> {
           ),
         ),
 
-        // Grid de 7 columnas
+        // Grid: eje de tiempo + 7 columnas
         Expanded(
           child: Row(
-            children: weekDays.map((day) {
-              final tasksForDay = _getTasksForDay(day, allTasks);
-              return Expanded(
-                child: WeekDayColumn(
-                  date: day,
-                  tasks: tasksForDay,
-                  isToday: _isToday(day),
-                  onTaskTap: _openTask,
+            children: [
+              // Eje de horas
+              SizedBox(
+                width: 30,
+                child: Column(
+                  children: [
+                    const SizedBox(height: WeekDayColumn.headerHeight),
+                    Expanded(
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: List.generate(13, (i) {
+                          final hour = (WeekDayColumn.startHour + i).toInt();
+                          return Positioned(
+                            top: i * WeekDayColumn.pixelsPerHour - 7,
+                            left: 0,
+                            right: 2,
+                            child: Text(
+                              '$hour',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
                 ),
-              );
-            }).toList(),
+              ),
+              // Columnas de días
+              ...weekDays.map((day) {
+                final tasksForDay = _getTasksForDay(day, allTasks);
+                return Expanded(
+                  child: WeekDayColumn(
+                    date: day,
+                    tasks: tasksForDay,
+                    isToday: _isToday(day),
+                    onTaskTap: _openTask,
+                  ),
+                );
+              }),
+            ],
           ),
         ),
       ],
