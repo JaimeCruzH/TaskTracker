@@ -148,7 +148,6 @@ class TaskRepository {
 
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
-    final tomorrowStart = todayStart.add(const Duration(days: 1));
     final weekEnd = todayStart.add(const Duration(days: 7));
 
     for (final task in allTasks) {

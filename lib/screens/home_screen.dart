@@ -66,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
         );
 
         if (result == null) return;
+        if (!mounted) return;
 
         final provider = context.read<TaskRepositoryProvider>();
         if (result == DeleteRecurrenceChoice.thisOccurrence) {

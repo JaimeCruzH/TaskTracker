@@ -30,11 +30,11 @@ class _DeleteRecurringDialogState extends State<DeleteRecurringDialog> {
     final dateStr = widget.task.dueDate != null ? _formatDate(widget.task.dueDate!) : '';
 
     return AlertDialog(
-      title: Row(
+      title: const Row(
         children: [
-          const Icon(Icons.delete_outline, size: 24),
-          const SizedBox(width: 8),
-          const Text('Eliminar tarea recurrente'),
+          Icon(Icons.delete_outline, size: 24),
+          SizedBox(width: 8),
+          Text('Eliminar tarea recurrente'),
         ],
       ),
       content: Column(
@@ -48,27 +48,24 @@ class _DeleteRecurringDialogState extends State<DeleteRecurringDialog> {
           const SizedBox(height: 16),
           const Text('¿Qué querés eliminar?'),
           const SizedBox(height: 8),
-          RadioListTile<DeleteRecurrenceChoice>(
-            title: const Text('Solo esta repetición'),
-            subtitle: Text('"${widget.task.title} - $dateStr"'),
-            value: DeleteRecurrenceChoice.thisOccurrence,
+          RadioGroup<DeleteRecurrenceChoice>(
             groupValue: _choice,
-            onChanged: (value) {
-              setState(() {
-                _choice = value!;
-              });
-            },
-          ),
-          RadioListTile<DeleteRecurrenceChoice>(
-            title: Text('Todas las futuras (${widget.futureCount} tareas)'),
-            subtitle: Text('Desde el $dateStr en adelante'),
-            value: DeleteRecurrenceChoice.allFuture,
-            groupValue: _choice,
-            onChanged: (value) {
-              setState(() {
-                _choice = value!;
-              });
-            },
+            onChanged: (value) => setState(() => _choice = value!),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioListTile<DeleteRecurrenceChoice>(
+                  title: const Text('Solo esta repetición'),
+                  subtitle: Text('"${widget.task.title} - $dateStr"'),
+                  value: DeleteRecurrenceChoice.thisOccurrence,
+                ),
+                RadioListTile<DeleteRecurrenceChoice>(
+                  title: Text('Todas las futuras (${widget.futureCount} tareas)'),
+                  subtitle: Text('Desde el $dateStr en adelante'),
+                  value: DeleteRecurrenceChoice.allFuture,
+                ),
+              ],
+            ),
           ),
         ],
       ),

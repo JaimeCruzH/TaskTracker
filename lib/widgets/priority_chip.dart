@@ -20,7 +20,7 @@ class PriorityChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? _getColor() : _getColor().withOpacity(0.2),
+          color: isSelected ? _getColor() : _getColor().withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: _getColor(),
