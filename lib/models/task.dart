@@ -79,7 +79,6 @@ class Task {
       'recurrencePatternId': recurrencePatternId,
       'parentTaskId': parentTaskId,
       'durationMinutes': durationMinutes,
-      'tagIds': tagIds.join(','),
       'dependsOnTaskId': dependsOnTaskId,
       'category': category?.index,
     };
